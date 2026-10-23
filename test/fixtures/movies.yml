@@ -1,0 +1,23 @@
+one:
+  title: Aladdin
+  rating: G
+  description: A magical carpet ride
+  release_date: 1992-11-25
+
+two:
+  title: The Terminator
+  rating: R
+  description: Cybernetic organism
+  release_date: 1984-10-26
+
+three:
+  title: The Incredibles
+  rating: PG
+  description: Superhero family
+  release_date: 2004-11-05
+
+four:
+  title: Chocolat
+  rating: PG-13
+  description: A chocolate shop in France
+  release_date: 2001-01-05
