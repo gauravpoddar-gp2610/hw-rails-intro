@@ -5,17 +5,51 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.all_ratings
 
+    redirect = false
+
+    # 1. Sort parameter handling and session persistence
+    if params[:sort_by].present?
+      @sort_by = params[:sort_by]
+      session[:sort_by] = @sort_by
+    elsif session[:sort_by].present?
+      @sort_by = session[:sort_by]
+      redirect = true
+    else
+      @sort_by = nil
+    end
+
+    # 2. Ratings parameter handling and session persistence
     if params[:ratings].present?
       @ratings_to_show = if params[:ratings].is_a?(Hash) || params[:ratings].is_a?(ActionController::Parameters)
                            params[:ratings].keys
                          else
                            Array(params[:ratings])
                          end
+      session[:ratings] = @ratings_to_show.index_with { '1' }
+    elsif params[:commit].present? || params[:ratings_submit].present?
+      # User explicitly clicked 'Refresh' with no checkboxes checked -> display all ratings
+      @ratings_to_show = @all_ratings
+      session[:ratings] = @all_ratings.index_with { '1' }
+    elsif session[:ratings].present?
+      @ratings_to_show = if session[:ratings].is_a?(Hash) || session[:ratings].is_a?(ActionController::Parameters)
+                           session[:ratings].keys
+                         else
+                           Array(session[:ratings])
+                         end
+      redirect = true
     else
+      # First visit with no session and no params -> display all ratings
       @ratings_to_show = @all_ratings
     end
 
-    @sort_by = params[:sort_by]
+    # 3. Redirect if parameters were restored from session to preserve RESTful URI
+    if redirect
+      flash.keep
+      redirect_params = {}
+      redirect_params[:sort_by] = @sort_by if @sort_by.present?
+      redirect_params[:ratings] = session[:ratings] if session[:ratings].present?
+      redirect_to movies_path(redirect_params) and return
+    end
 
     @movies = Movie.with_ratings(@ratings_to_show)
     if @sort_by.present? && Movie.column_names.include?(@sort_by)
